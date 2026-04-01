@@ -1,11 +1,17 @@
 import express from "express";
 import fetch from "node-fetch";
+import cors from "cors";
 
 const app = express();
+
+// важно
+app.use(cors());
 app.use(express.json());
 
 app.post("/chat", async (req, res) => {
   try {
+    const userMessage = req.body.message;
+
     const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -15,7 +21,7 @@ app.post("/chat", async (req, res) => {
       body: JSON.stringify({
         model: "llama-3.1-8b-instant",
         messages: [
-          { role: "user", content: req.body.message }
+          { role: "user", content: userMessage }
         ]
       })
     });
@@ -24,8 +30,11 @@ app.post("/chat", async (req, res) => {
     res.json(data);
 
   } catch (error) {
+    console.error(error);
     res.status(500).send("Ошибка сервера");
   }
 });
 
-app.listen(3000, () => console.log("Server started"));
+// ВАЖНО для Render
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log("Server started"));
