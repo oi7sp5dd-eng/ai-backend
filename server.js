@@ -1,16 +1,22 @@
 import express from "express";
 import fetch from "node-fetch";
-import cors from "cors";
 
 const app = express();
-
-// важно
-app.use(cors());
 app.use(express.json());
 
 app.post("/chat", async (req, res) => {
   try {
-    const userMessage = req.body.message;
+    const { history, message } = req.body;
+
+    // формируем сообщения для AI
+    const messages = [
+      {
+        role: "system",
+        content: "Ты AI Neuraxis. Ты умный помощник, отвечаешь логично и учитываешь весь диалог."
+      },
+      ...history,
+      { role: "user", content: message }
+    ];
 
     const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
@@ -20,9 +26,7 @@ app.post("/chat", async (req, res) => {
       },
       body: JSON.stringify({
         model: "llama-3.1-8b-instant",
-        messages: [
-          { role: "user", content: userMessage }
-        ]
+        messages: messages
       })
     });
 
@@ -35,6 +39,4 @@ app.post("/chat", async (req, res) => {
   }
 });
 
-// ВАЖНО для Render
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log("Server started"));
+app.listen(3000, () => console.log("Server started"));
